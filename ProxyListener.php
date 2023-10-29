@@ -39,13 +39,11 @@ class ProxyListener implements Listener
                 break;
             case RequestNetworkSettingsPacket::NETWORK_ID:
                 /** @var RequestNetworkSettingsPacket $packet USED TO SIMULATE VANILLA BEHAVIOUR, SINCE IT'S NOT USED BY US */
-                if (!in_array($protocolVersion = $packet->getProtocolVersion(), ProtocolInfo::ACCEPTED_PROTOCOL, true)) {
+                $protocolVersion = $packet->getProtocolVersion();
+
+                if ($protocolVersion !== ProtocolInfo::CURRENT_PROTOCOL) {
                     $origin->disconnectIncompatibleProtocol($protocolVersion);
                     return;
-                }
-
-                if (method_exists($origin, 'setProtocolId')) {
-                    $origin->setProtocolId($packet->getProtocolVersion());
                 }
 
                 $origin->sendDataPacket(NetworkSettingsPacket::create(

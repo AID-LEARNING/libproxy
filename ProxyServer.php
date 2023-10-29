@@ -11,17 +11,18 @@ use libproxy\protocol\LoginPacket;
 use libproxy\protocol\ProxyPacket;
 use libproxy\protocol\ProxyPacketPool;
 use libproxy\protocol\ProxyPacketSerializer;
+use pmmp\thread\ThreadSafeArray;
 use pocketmine\network\mcpe\raklib\PthreadsChannelReader;
 use pocketmine\network\mcpe\raklib\SnoozeAwarePthreadsChannelWriter;
 use pocketmine\network\PacketHandlingException;
+use pocketmine\snooze\SleeperHandlerEntry;
 use pocketmine\snooze\SleeperNotifier;
+use pocketmine\thread\log\AttachableThreadSafeLogger;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryDataException;
 use pocketmine\utils\Utils;
 use raklib\generic\SocketException;
 use Socket;
-use Threaded;
-use ThreadedLogger;
 use function count;
 use function min;
 use function socket_accept;
@@ -55,8 +56,8 @@ class ProxyServer
     private const LENGTH_NEEDED = 0;
     private const BUFFER = 1;
 
-    /** @var ThreadedLogger */
-    private ThreadedLogger $logger;
+    /** @var AttachableThreadSafeLogger */
+    private AttachableThreadSafeLogger $logger;
     /** @var PthreadsChannelReader */
     private PthreadsChannelReader $mainToThreadReader;
     /** @var SnoozeAwarePthreadsChannelWriter */
@@ -75,14 +76,14 @@ class ProxyServer
     /** @var int */
     private int $socketId = 0;
 
-    public function __construct(ThreadedLogger $logger, Socket $serverSocket, Threaded $mainToThreadBuffer, Threaded $threadToMainBuffer, SleeperNotifier $notifier, Socket $notifySocket)
+    public function __construct(AttachableThreadSafeLogger $logger, Socket $serverSocket, ThreadSafeArray $mainToThreadBuffer, ThreadSafeArray $threadToMainBuffer, SleeperHandlerEntry $sleeperEntry, Socket $notifySocket)
     {
         $this->logger = $logger;
         $this->serverSocket = $serverSocket;
         $this->notifySocket = $notifySocket;
 
         $this->mainToThreadReader = new PthreadsChannelReader($mainToThreadBuffer);
-        $this->threadToMainWriter = new SnoozeAwarePthreadsChannelWriter($threadToMainBuffer, $notifier);
+        $this->threadToMainWriter = new SnoozeAwarePthreadsChannelWriter($threadToMainBuffer, $sleeperEntry->createNotifier());
     }
 
     public function waitShutdown(): void
