@@ -35,6 +35,7 @@ use pocketmine\snooze\SleeperHandlerEntry;
 use pocketmine\thread\ThreadCrashException;
 use pocketmine\utils\Binary;
 use pocketmine\utils\BinaryDataException;
+use pocketmine\utils\Utils;
 use Socket;
 use ThreadedArray;
 use WeakMap;
@@ -77,7 +78,6 @@ final class ProxyNetworkInterface implements NetworkInterface
     private PacketBroadcaster $packetBroadcaster;
     /** @var EntityEventBroadcaster */
     private EntityEventBroadcaster $entityEventBroadcaster;
-
     /** @var int */
     private int $receiveBytes = 0;
     /** @var int */

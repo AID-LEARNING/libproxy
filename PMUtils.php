@@ -14,13 +14,10 @@ use function method_exists;
 
 class PMUtils
 {
-    public static function getPacketSerializerContext(Server $server): PacketSerializerContext
+    public static function getPacketSerializerContext(RakLibInterface $interface): PacketSerializerContext
     {
-        if (method_exists($server, 'getPacketSerializerContext')) {
-            return $server->getPacketSerializerContext(TypeConverter::getInstance());
-        }
 
-        $packetSerializerContext = self::getRaklibInterfacePropertyValue($server, 'packetSerializerContext');
+        $packetSerializerContext = self::getRaklibInterfacePropertyValue($interface, 'packetSerializerContext');
         if ($packetSerializerContext instanceof PacketSerializerContext) {
             return $packetSerializerContext;
         }
@@ -28,13 +25,10 @@ class PMUtils
         throw new Exception("PacketSerializerContext isn't valid");
     }
 
-    public static function getPacketBroadcaster(Server $server): PacketBroadcaster
+    public static function getPacketBroadcaster(RakLibInterface $interface): PacketBroadcaster
     {
-        if (method_exists($server, 'getPacketBroadcaster')) {
-            return $server->getPacketBroadcaster(self::getPacketSerializerContext($server));
-        }
 
-        $packetBroadcaster = self::getRaklibInterfacePropertyValue($server, 'packetBroadcaster');
+        $packetBroadcaster = self::getRaklibInterfacePropertyValue($interface, 'packetBroadcaster');
         if ($packetBroadcaster instanceof PacketBroadcaster) {
             return $packetBroadcaster;
         }
@@ -42,13 +36,10 @@ class PMUtils
         throw new Exception("PacketBroadcaster isn't valid");
     }
 
-    public static function getEntityEventBroadcaster(Server $server): EntityEventBroadcaster
+    public static function getEntityEventBroadcaster(RakLibInterface $interface): EntityEventBroadcaster
     {
-        if (method_exists($server, 'getEntityEventBroadcaster')) {
-            return $server->getEntityEventBroadcaster(self::getPacketBroadcaster($server), TypeConverter::getInstance());
-        }
 
-        $entityEventBroadcaster = self::getRaklibInterfacePropertyValue($server, 'entityEventBroadcaster');
+        $entityEventBroadcaster = self::getRaklibInterfacePropertyValue($interface, 'entityEventBroadcaster');
         if ($entityEventBroadcaster instanceof EntityEventBroadcaster) {
             return $entityEventBroadcaster;
         }
@@ -56,26 +47,11 @@ class PMUtils
         throw new Exception("EntityEventBroadcaster isn't valid");
     }
 
-    private static function getRaklibInterfacePropertyValue(Server $server, string $propertyName): mixed
+    private static function getRaklibInterfacePropertyValue(RakLibInterface $interface, string $propertyName): mixed
     {
-        $interface = self::getRaklibInterface($server);
         $reflection = new ReflectionClass($interface);
         $property = $reflection->getProperty($propertyName);
 
         return $property->getValue($interface);
-    }
-
-    /**
-     * @throws Exception
-     */
-    private static function getRaklibInterface(Server $server): RakLibInterface
-    {
-        foreach ($server->getNetwork()->getInterfaces() as $interface) {
-            if ($interface instanceof RakLibInterface) {
-                return $interface;
-            }
-        }
-
-        throw new Exception("Raklib interface hasn't been registered");
     }
 }
